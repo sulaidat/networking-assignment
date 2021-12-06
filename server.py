@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # server.py
 
-from posixpath import expanduser
 import socket
-from selectors import EVENT_READ, EVENT_WRITE
 from util.loop import Loop
 from util.currency import *
 from util.timer import MyThread
@@ -16,7 +14,7 @@ s.setblocking(False)
 
 loop = Loop()
 
-man_shell = """
+MAN_SHELL = """
 Dac Cong's Currency Interactive Shell
 
 Commands:
@@ -28,7 +26,7 @@ Commands:
 Run <command> -h for more information
 """
 
-man_latest = """
+MAN_LATEST = """
 latest - Request the most recent exchange rate data (base: EUR)
 
 Usage:  
@@ -37,7 +35,7 @@ Usage:
     latest [<list of symbols>]  return specified symbols
 """
 
-man_historical = """
+MAN_HISTORICAL = """
 historical - Request historical rates for a specific day (base: EUR)
 
 Usage:
@@ -46,7 +44,7 @@ Usage:
     historical <date> <list of symbols> return specified symbols
 """
 
-man_convert = """
+MAN_CONVERT = """
 convert - Convert any amount from one currency to another
 
 Usage:
@@ -57,7 +55,7 @@ Usage:
 
 def interpret(msg):
     if not msg:
-        return man_shell
+        return MAN_SHELL
 
     msg = msg.split()
     if msg[0] == 'latest':
@@ -65,13 +63,13 @@ def interpret(msg):
             data = latest(msg[1:])
             msg = json.dumps(data)
         except KeyError:
-            msg = man_latest
+            msg = MAN_LATEST
     elif msg[0] == 'historical':
         try:
             data = historical(msg[1], msg[2:])
             msg = json.dumps(data)
         except (KeyError, IndexError):
-            msg = man_historical
+            msg = MAN_HISTORICAL
     elif msg[0] == 'convert':
         try:
             msg = str(convert(msg[1], msg[2], msg[3], msg[4]))
@@ -79,9 +77,9 @@ def interpret(msg):
             try:
                 msg = str(convert(msg[1], msg[2], msg[3]))
             except (KeyError, IndexError):
-                msg = man_convert
+                msg = MAN_CONVERT
     else:
-        msg = man_shell
+        msg = MAN_SHELL
     return msg
 
 def handler(conn):
