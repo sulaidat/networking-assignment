@@ -81,7 +81,7 @@ class Loop(object):
         while True:
             try:
                 msg = conn.recv(size)
-            except BlockingIOError:
+            except (BlockingIOError, ConnectionResetError) as e:
                 yield (EVENT_READ, conn)
             else:
                 break

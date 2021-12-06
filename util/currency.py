@@ -61,7 +61,7 @@ def convert(src, dst, amount, date=None):
     data = get(date)['rates']
     src = data[src.upper()]
     dst = data[dst.upper()]
-    return dst*amount / src
+    return dst*float(amount) / src
 
 def help():
     infomation = """
