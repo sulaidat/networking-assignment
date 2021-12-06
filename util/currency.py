@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# currency.py
+
 import json
 import requests
 from datetime import date
@@ -62,14 +64,3 @@ def convert(src, dst, amount, date=None):
     src = data[src.upper()]
     dst = data[dst.upper()]
     return dst*float(amount) / src
-
-def help():
-    infomation = """
-    Slaydark's Currency Interactive Shell
-    
-    Commands:
-        latest
-
-    Run 'help' for more information
-    """
-    print(infomation)
