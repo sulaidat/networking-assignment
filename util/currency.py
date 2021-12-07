@@ -39,7 +39,7 @@ def get(date):
     except FileNotFoundError:
         if date == today:
             fetch_latest()
-        else:
+        elif not os.path.isfile(fileName):
             fetch_historical(date)
         with open(fileName, "r") as file:
             data = json.load(file)  
