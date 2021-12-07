@@ -2,7 +2,7 @@
 # currency.py
 
 import json
-import requests
+from urllib.request import urlopen
 from datetime import date
 import os
 
@@ -15,7 +15,7 @@ today = date.today().isoformat()
 
 def fetch_latest(): 
     request = ''.join((baseURL, 'latest?', key))
-    data = requests.get(request).json()
+    data = json.loads(urlopen(request).read().decode())
     
     fileName = db + today + '.json'
     with open(fileName, "w") as file:
@@ -24,7 +24,7 @@ def fetch_latest():
 
 def fetch_historical(date):
     request = ''.join((baseURL, date, '?', key))
-    data = requests.get(request).json()
+    data = json.loads(urlopen(request).read().decode())
 
     fileName = db + date + '.json'
     with open(fileName, "w") as file:
