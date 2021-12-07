@@ -2,7 +2,7 @@
 # server.py
 
 import socket
-from util.loop import Loop
+from util.loop_window import Loop
 from util.currency import *
 from util.timer import MyThread
 
@@ -18,7 +18,7 @@ MAN_SHELL = """
 Dac Cong's Currency Interactive Shell
 
 Commands:
-    help        print this manual
+    help        print this manual`
     latest      request the most recent exchange rate data (base: EUR)
     historical  request historical rates for a specific day (base: EUR)
     convert     convert any amount from one currency to another using real-time exchange rates

@@ -3,7 +3,7 @@
 
 import socket
 from selectors import EVENT_READ, EVENT_WRITE
-from loop_window import Loop
+from util.loop_window import Loop
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
