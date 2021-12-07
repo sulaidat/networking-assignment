@@ -2,13 +2,14 @@
 # server.py
 
 import socket
+from urllib.error import HTTPError
 from util.loop_window import Loop
 from util.currency import *
 from util.timer import MyThread
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.bind(("127.0.0.1", 5566))
+s.bind(("127.0.0.1", 5566))-m
 s.listen(10240)
 s.setblocking(False)
 
@@ -42,6 +43,7 @@ Usage:
     historical -h                       help
     historical <date>                   return all symbols
     historical <date> <list of symbols> return specified symbols
+    date format is YYYY-MM-DD
 """
 
 MAN_CONVERT = """
@@ -68,7 +70,7 @@ def interpret(msg):
         try:
             data = historical(msg[1], msg[2:])
             msg = json.dumps(data)
-        except (KeyError, IndexError):
+        except (KeyError, IndexError, HTTPError):
             msg = MAN_HISTORICAL
     elif msg[0] == 'convert':
         try:
@@ -97,7 +99,7 @@ def main():
         conn.setblocking(False)
         loop.create_task((handler(conn), None))
 
-thread = MyThread(10)   # update every 10 seconds
+thread = MyThread(1800)   # update every 30 minutes
 thread.start()
 loop.create_task((main(), None))
 loop.run()
