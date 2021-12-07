@@ -35,7 +35,7 @@ class Loop(object):
             return False
         return True
 
-    def register(self, t, data):
+    def register(self, task, data):
         """
         Register IO objs
         """
@@ -44,20 +44,20 @@ class Loop(object):
 
         if data[0] == EVENT_READ:
             if self.is_registered(data[1]):
-                self.sel.modify(data[1], EVENT_READ, t)
+                self.sel.modify(data[1], EVENT_READ, task)
             else:
-                self.sel.register(data[1], EVENT_READ, t)
+                self.sel.register(data[1], EVENT_READ, task)
         elif data[0] == EVENT_WRITE:
             if self.is_registered(data[1]):
-                self.sel.modify(data[1], EVENT_WRITE, t)
+                self.sel.modify(data[1], EVENT_WRITE, task)
             else:
-                self.sel.register(data[1], EVENT_WRITE, t)
+                self.sel.register(data[1], EVENT_WRITE, task)
         else:
             return False
 
         return True
 
-    def accept(self, s):
+    def accept(self, sock):
         """
         If successfully accept then return (conn, addr). 
         If there're no conections then send data back to caller.
@@ -65,9 +65,9 @@ class Loop(object):
         conn, addr = None, None
         while True: # cho nay k co while chay khong duoc :)) 
             try:
-                conn, addr = s.accept()
+                conn, addr = sock.accept()
             except BlockingIOError:
-                yield (EVENT_READ, s)
+                yield (EVENT_READ, sock)
             else:
                 break
         return conn, addr
@@ -110,14 +110,14 @@ class Loop(object):
         """
         self.polling()
         unfinished = []
-        for t, data in self.queue:
+        for task, data in self.queue:
             try:
-                data = t.send(data)
+                data = task.send(data)
             except StopIteration:
                 continue
 
-            if self.register(t, data):
-                unfinished.append((t, None))
+            if self.register(task, data):
+                unfinished.append((task, None))
 
         self.queue = unfinished
 
