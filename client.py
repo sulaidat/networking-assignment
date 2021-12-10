@@ -6,6 +6,11 @@ s.connect(('127.0.0.1', 5566))
 
 while True:
     msg = input("$ ")
-    s.send(msg.encode())
-    msg = s.recv(4096).decode()
+    if not msg:
+        continue
+    try:
+        s.send(msg.encode())
+        msg = s.recv(4096).decode()
+    except BrokenPipeError:
+        break
     print(msg)

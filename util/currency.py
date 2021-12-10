@@ -6,9 +6,12 @@ from urllib.request import urlopen
 from datetime import date
 import os
 
-dirname = os.path.dirname(__file__)
+cwd = os.path.abspath(os.getcwd())
+db = os.path.join(cwd, 'database/')
 
-db = os.path.join(dirname, '../database/')
+if not os.path.exists(db):
+    os.makedirs(db)
+
 baseURL = 'http://api.exchangeratesapi.io/v1/'
 key = 'access_key=b7d06743100d59caa9b2c50909defbff'
 today = date.today().isoformat()
