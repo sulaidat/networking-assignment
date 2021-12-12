@@ -5,7 +5,7 @@ import socket
 # import fcntl
 # import sys
 from urllib.error import HTTPError
-from util.loop_window import Loop
+from util.loop import Loop
 from util.currency import *
 from util.user import *
 from util.timer import MyThread
@@ -41,6 +41,8 @@ Usage:
     latest -h                   help
     latest                      return all symbols
     latest [<list of symbols>]  return specified symbols
+Return: 
+    json string of data
 """
 
 MAN_HISTORICAL = """
@@ -51,6 +53,8 @@ Usage:
     historical <date>                   return all symbols
     historical <date> <list of symbols> return specified symbols
     date format is YYYY-MM-DD
+Return:
+    json string of data
 """
 
 MAN_CONVERT = """
@@ -60,6 +64,8 @@ Usage:
     convert -h                       help
     convert                   return all symbols
     convert <date> <list of symbols> return specified symbols
+Return:
+    json string of data
 """
 
 MAN_LOGIN = """
@@ -67,6 +73,9 @@ login - login
 
 Usage:
     login <username> <password>
+Return:
+    if success: return string "Logged in successfully"
+    if account incorrect: return string "Username or password incorrect!"
 """
 
 MAN_REGISTER = """
@@ -74,6 +83,18 @@ register - register account
 
 Usage:
     register <username> <password>
+Return:
+    if account exists: return string "Account already exists"
+    if success: return string "Account successfully registered"
+"""
+
+MAN_QUIT = """
+quit
+
+Usage: 
+    quit
+Return:
+    string "Quitted"
 """
 
 def interpret(msg):
@@ -101,6 +122,8 @@ def interpret(msg):
                 msg = str(convert(msg[1], msg[2], msg[3]))
             except (KeyError, IndexError):
                 msg = MAN_CONVERT
+    elif msg[0] == 'quit':
+        msg = 'Quitted'
     else:
         msg = MAN_SHELL
     return msg
@@ -140,8 +163,12 @@ def handler(conn):
         if not msg:
             conn.close()
             break
-        msg = interpret(msg.decode()).encode()
-        yield from loop.send(conn, msg)
+        msg = interpret(msg.decode())
+        if msg == 'Quitted':
+            yield from loop.send(conn, msg.encode())
+            conn.close()
+            break
+        yield from loop.send(conn, msg.encode())
 
 def before_handler(conn):
     logged = False
