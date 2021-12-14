@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 # currency.py
+"""
+This module provides some exchange rate API
+"""
 
 import json
 from urllib.request import urlopen
-from datetime import date
+from urllib.error import HTTPError
+from datetime import date, timedelta
 import os
 
 cwd = os.path.abspath(os.getcwd())
@@ -67,3 +71,22 @@ def convert(src, dst, amount, date=None):
     src = data[src.upper()]
     dst = data[dst.upper()]
     return dst*float(amount) / src
+
+def timeseries(start_date, end_date, base, symbols_list=None):
+    if symbols_list:
+        symbols_list = ','.join(i.upper() for i in symbols_list)
+    else:
+        symbols_list = 'None'
+
+    request = 'https://api.exchangerate.host/timeseries?' \
+        + 'start_date=' + start_date \
+        + '&end_date=' + end_date \
+        + '&base=' + base.upper() \
+        + '&symbols=' + symbols_list 
+    # print(request)
+    try:
+        data = json.loads(urlopen(request).read().decode())['rates']
+    except HTTPError:
+        data = None
+    
+    return data
