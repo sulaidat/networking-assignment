@@ -3,9 +3,8 @@
 
 from threading import Thread, Event
 from util.currency import fetch_latest
-import time
 
-class MyThread(Thread):
+class TimerThread(Thread):
     def __init__(self, timeout):
         Thread.__init__(self)
         self.event = Event()

@@ -8,7 +8,7 @@ from urllib.error import HTTPError
 from util.loop_window import Loop
 from util.currency import *
 from util.user import *
-from util.timer import MyThread
+from util.timer import TimerThread
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -170,7 +170,7 @@ def main():
         conn.setblocking(False)
         loop.create_task((before_handler(conn), None))
 
-thread = MyThread(1800)   # update every 30 minutes
+thread = TimerThread(1800)   # update every 30 minutes
 thread.start()
 loop.create_task((main(), None))
 loop.run()
