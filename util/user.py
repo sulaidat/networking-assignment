@@ -7,6 +7,10 @@ cwd = os.path.abspath(os.getcwd())
 cred = os.path.join(cwd, 'credentials.json')
 
 def register(username, password):
+    if not os.path.isfile(cred):
+        with open(cred, 'w') as file:
+            pass
+
     with open(cred, 'r') as file:
         data = file.read()
         if not data:
@@ -24,6 +28,10 @@ def register(username, password):
     return True
 
 def login(username, password):
+    if not os.path.isfile(cred):
+        with open(cred, 'w') as file:
+            pass
+        
     with open(cred, 'r') as file:
         data = file.read()
         if not data:
@@ -36,3 +44,4 @@ def login(username, password):
             return False
         except ValueError:
             return False
+

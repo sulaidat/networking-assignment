@@ -6,87 +6,133 @@ This module provides some exchange rate API
 
 import json
 from urllib.request import urlopen
-from urllib.error import HTTPError
-from datetime import date, timedelta
+import datetime
 import os
 
 cwd = os.path.abspath(os.getcwd())
-db = os.path.join(cwd, 'database/')
+db_path = os.path.join(cwd, 'database/') 
 
-if not os.path.exists(db):
-    os.makedirs(db)
+if not os.path.exists(db_path):
+    os.makedirs(db_path)
+
+db_path = db_path + 'data.json'
 
 baseURL = 'http://api.exchangeratesapi.io/v1/'
 key = 'access_key=b7d06743100d59caa9b2c50909defbff'
-today = date.today().isoformat()
+today = datetime.date.today().isoformat()
 
 def fetch_latest(): 
     request = ''.join((baseURL, 'latest?', key))
     data = json.loads(urlopen(request).read().decode())
-    
-    fileName = db + today + '.json'
-    with open(fileName, "w") as file:
-        json.dump(data, file)
-    return data
+    date = data['date']
+    data = {data['date']:data['rates']}
+
+    if not os.path.isfile(db_path):
+        with open(db_path, 'w') as file:
+            pass
+
+    with open(db_path, "r") as file:
+        db = file.read()
+        if not db:
+            db = {}
+        else:
+            db = json.loads(db)
+ 
+    db.update(data)
+ 
+    with open(db_path, "w") as file:
+        json.dump(db, file)
+
+    return data[date]
 
 def fetch_historical(date):
     request = ''.join((baseURL, date, '?', key))
     data = json.loads(urlopen(request).read().decode())
+    data = {data['date']:data['rates']}
 
-    fileName = db + date + '.json'
-    with open(fileName, "w") as file:
-        json.dump(data, file)
+    if not os.path.isfile(db_path):
+        with open(db_path, 'w') as file:
+            pass
+
+    with open(db_path, "r") as file:
+        db = file.read()
+        if not db:
+            db = {}
+        else:
+            db = json.loads(db)
+
+    db.update(data)
+
+    with open(db_path, "w") as file:
+        json.dump(db, file)
+
+    return data[date]
+
+def fetch_timeseries(start_date, end_date):
+    request = 'https://api.exchangerate.host/timeseries?' \
+        + 'start_date=' + start_date \
+        + '&end_date=' + end_date 
+    # print(request)
+    data = json.loads(urlopen(request).read().decode())
+    data = data['rates']
+
+    if not os.path.isfile(db_path):
+        with open(db_path, 'w') as file:
+            pass
+
+    with open(db_path, "r") as file:
+        db = file.read()
+        if not db:
+            db = {}
+        else:
+            db = json.loads(db)
+ 
+    db.update(data)
+
+    with open(db_path, "w") as file:
+        json.dump(db, file)
+
     return data
 
-def get(date):
-    fileName = ''.join((db, date, '.json'))
-    try:
-        with open(fileName, "r") as file:
-            data = json.load(file)
-    except FileNotFoundError:
-        if date == today:
-            fetch_latest()
-        elif not os.path.isfile(fileName):
-            fetch_historical(date)
-        with open(fileName, "r") as file:
-            data = json.load(file)  
+def historical(date, symbols_list=None):
+    if not os.path.isfile(db_path):
+        data = fetch_historical(date)
+    else:
+        with open(db_path, 'r') as file:
+            try:
+                data = json.load(file)[date]
+            except KeyError:
+                data = fetch_historical(date)
+    
+    if symbols_list:
+        return {key.upper():data[key.upper()] for key in symbols_list}
     return data
 
-def historical(date, list=None):
-    data = get(date)['rates']
-    if list:
-        return {key.upper():data[key.upper()] for key in list}
-    return data
+def latest(symbols_list=None):
+    data = fetch_latest()
 
-def latest(list=None):
-    data = get(today)['rates']
-    if list:
-        return {key.upper():data[key.upper()] for key in list}
+    if symbols_list:
+        return {key.upper():data[key.upper()] for key in symbols_list}
     return data
 
 def convert(src, dst, amount, date=None):
     if not date:
-        date = today
-    data = get(date)['rates']
+        data = fetch_latest()
+    else:
+        with open(db_path, 'r') as file:
+            try:
+                data = json.load(file)[date]
+            except KeyError:
+                data = fetch_historical(date)
+
     src = data[src.upper()]
     dst = data[dst.upper()]
     return dst*float(amount) / src
 
-def timeseries(start_date, end_date, base, symbols_list=None):
-    if symbols_list:
-        symbols_list = ','.join(i.upper() for i in symbols_list)
-    else:
-        symbols_list = 'None'
+def timeseries(start_date, end_date, symbols_list=None):
+    data = fetch_timeseries(start_date, end_date)
 
-    request = 'https://api.exchangerate.host/timeseries?' \
-        + 'start_date=' + start_date \
-        + '&end_date=' + end_date \
-        + '&base=' + base.upper() \
-        + '&symbols=' + symbols_list 
-    # print(request)
-    try:
-        data = json.loads(urlopen(request).read().decode())['rates']
-    except HTTPError:
-        data = None
-    
+    if symbols_list:
+        for date, _ in data.items():
+            data[date] = {symbol.upper():data[date][symbol.upper()] for symbol in symbols_list}
     return data

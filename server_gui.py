@@ -110,6 +110,7 @@ Commands:
     convert     convert any amount from one currency to another using real-time exchange rates
     timeseries  request exchange rates for a specific period of time
     login       login an account
+    logout      logout
     register    register an account
 
 
@@ -193,47 +194,61 @@ Return:
 """
 
 
-def interpret(msg):
+def interpret(msg, addr):
     if not msg:
         return MAN_SHELL
 
     msg = msg.split()
+
     if msg[0] == 'latest':
         try:
             data = latest(msg[1:])
             msg = json.dumps(data, indent=2)
+            ServerFrame.logging(repr(addr) + ' use latest\n')  # log this
         except KeyError:
             msg = MAN_LATEST
+
     elif msg[0] == 'historical':
         try:
             data = historical(msg[1], msg[2:])
             msg = json.dumps(data, indent=2)
+            ServerFrame.logging(repr(addr) + ' use latest\n')  # log this
         except (KeyError, IndexError, HTTPError):
             msg = MAN_HISTORICAL
+
     elif msg[0] == 'convert':
         try:
             msg = str(convert(msg[1], msg[2], msg[3], msg[4]))
+            ServerFrame.logging(repr(addr) + ' use latest\n')  # log this
         except IndexError:
             try:
                 msg = str(convert(msg[1], msg[2], msg[3]))
-            except (KeyError, IndexError):
+                ServerFrame.logging(repr(addr) + ' use latest\n')  # log this
+            except (KeyError, IndexError, ValueError):
                 msg = MAN_CONVERT
+
     elif msg[0] == 'timeseries':
         try:
-            data = timeseries(msg[1], msg[2], msg[3], msg[4:])
+            data = timeseries(msg[1], msg[2], msg[3:])
             msg = json.dumps(data, indent=2)
+            ServerFrame.logging(repr(addr) + ' use latest\n')  # log this
         except:
             try:
-                msg = timeseries(msg[1], msg[2], msg[3])
-            except (KeyError, IndexError):
+                data = timeseries(msg[1], msg[2])
+                msg = json.dumps(data, indent=2)
+                ServerFrame.logging(repr(addr) + ' use latest\n')  # log this
+            except (KeyError, IndexError, HTTPError):
                 msg = MAN_TIMESERIES
+
+    elif msg[0] == 'logout':
+        msg = 'Logging out'
     elif msg[0] == 'quit':
         msg = 'Quitted'
     else:
         msg = MAN_SHELL
     return msg
 
-def interpret_before_handler(msg):
+def interpret_before_handler(msg, addr):
     if not msg:
         return MAN_LOGIN
 
@@ -259,21 +274,27 @@ def interpret_before_handler(msg):
     elif msg[0] == 'quit':
         msg = 'Quitted'
     else:
-        msg = 'You must login first!'
+        msg = 'You must login first!\n' + MAN_LOGIN
     return msg
 
 def handler(conn, addr):
-    while True:
-        msg = yield from loop.recv(conn, 1024)
+    logout = False
+    while not logout:
+        msg = yield from loop.recv(conn, 1642500)
         if not msg:
             conn.close()
             break
-        msg = interpret(msg.decode())
+        msg = interpret(msg.decode(), addr)
         if msg == 'Quitted':
-            ServerFrame.logging(repr(addr) + ' quitted\n')
+            ServerFrame.logging(repr(addr) + ' quitted\n')  # log this
             yield from loop.send(conn, msg.encode())
             conn.close()
             break
+        elif msg == 'Logging out':
+            ServerFrame.logging(repr(addr) + ' logging out\n')  # log this
+            loop.create_task((before_handler(conn), None))
+            logout = True
+
         yield from loop.send(conn, msg.encode())
 
 def before_handler(conn, addr):
@@ -283,17 +304,17 @@ def before_handler(conn, addr):
         if not msg:
             conn.close()
             break
-        msg = interpret_before_handler(msg.decode())
+        msg = interpret_before_handler(msg.decode(), addr)
         if msg == 'Quitted':
-            ServerFrame.logging(repr(addr) + ' quitted\n')
+            ServerFrame.logging(repr(addr) + ' quitted\n')  # log this
             yield from loop.send(conn, msg.encode())
             conn.close()
             break
         elif msg == 'Account successfully registered':
-            ServerFrame.logging(repr(addr) + ' registered an account\n')
+            ServerFrame.logging(repr(addr) + ' registered an account\n')    # log this
         elif msg == 'True':
             msg = 'Logged in successfully'
-            ServerFrame.logging(repr(addr) + ' logged in\n')
+            ServerFrame.logging(repr(addr) + ' logged in\n')    # log this
             loop.create_task((handler(conn, addr), None))
             logged = True
         msg = msg.encode()
@@ -305,7 +326,7 @@ def main():
     while True:
         conn, addr = yield from loop.accept(s)
         conns.append(conn)
-        ServerFrame.logging(repr(addr) + ' connected\n')
+        ServerFrame.logging(repr(addr) + ' connected\n')    # log this
         conn.setblocking(False)
         loop.create_task((before_handler(conn, addr), None))
 

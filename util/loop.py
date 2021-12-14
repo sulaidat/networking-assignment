@@ -95,7 +95,7 @@ class Loop(object):
         size = 0
         while True:
             try:
-                size = conn.send(msg)
+                size = conn.sendall(msg)
             except BlockingIOError:
                 yield (EVENT_WRITE, conn)
             else:

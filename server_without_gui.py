@@ -32,6 +32,7 @@ Commands:
     convert     convert any amount from one currency to another using real-time exchange rates
     timeseries  request exchange rates for a specific period of time
     login       login an account
+    logout      logout
     register    register an account
 
 
@@ -138,17 +139,20 @@ def interpret(msg):
         except IndexError:
             try:
                 msg = str(convert(msg[1], msg[2], msg[3]))
-            except (KeyError, IndexError):
+            except (KeyError, IndexError, ValueError):
                 msg = MAN_CONVERT
     elif msg[0] == 'timeseries':
         try:
-            data = timeseries(msg[1], msg[2], msg[3], msg[4:])
+            data = timeseries(msg[1], msg[2], msg[3:])
             msg = json.dumps(data, indent=2)
         except:
             try:
-                msg = timeseries(msg[1], msg[2], msg[3])
-            except (KeyError, IndexError):
+                data = timeseries(msg[1], msg[2])
+                msg = json.dumps(data, indent=2)
+            except (KeyError, IndexError, HTTPError):
                 msg = MAN_TIMESERIES
+    elif msg[0] == 'logout':
+        msg = 'Logging out'
     elif msg[0] == 'quit':
         msg = 'Quitted'
     else:
@@ -181,12 +185,13 @@ def interpret_before_handler(msg):
     elif msg[0] == 'quit':
         msg = 'Quitted'
     else:
-        msg = 'You must login first!'
+        msg = 'You must login first!\n' + MAN_LOGIN
     return msg
 
 def handler(conn):
-    while True:
-        msg = yield from loop.recv(conn, 1024)
+    logout = False
+    while not logout:
+        msg = yield from loop.recv(conn, 1642500)
         if not msg:
             conn.close()
             break
@@ -195,12 +200,16 @@ def handler(conn):
             yield from loop.send(conn, msg.encode())
             conn.close()
             break
+        elif msg == 'Logging out':
+            loop.create_task((before_handler(conn), None))
+            logout = True
+
         yield from loop.send(conn, msg.encode())
 
 def before_handler(conn):
     logged = False
     while not logged:
-        msg = yield from loop.recv(conn, 1024)
+        msg = yield from loop.recv(conn, 1642500)
         if not msg:
             conn.close()
             break
