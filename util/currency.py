@@ -72,7 +72,7 @@ def fetch_timeseries(start_date, end_date):
     request = 'https://api.exchangerate.host/timeseries?' \
         + 'start_date=' + start_date \
         + '&end_date=' + end_date 
-    # print(request)
+    print(request)
     data = json.loads(urlopen(request).read().decode())
     data = data['rates']
 
@@ -134,5 +134,8 @@ def timeseries(start_date, end_date, symbols_list=None):
 
     if symbols_list:
         for date, _ in data.items():
-            data[date] = {symbol.upper():data[date][symbol.upper()] for symbol in symbols_list}
+            try:
+                data[date] = {symbol.upper():data[date][symbol.upper()] for symbol in symbols_list}
+            except KeyError:
+                continue
     return data

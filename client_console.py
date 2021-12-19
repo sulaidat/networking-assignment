@@ -11,7 +11,7 @@ while True:
         continue
     try:
         s.send(msg.encode())
-        msg = s.recv(4096).decode()
+        msg = s.recv(1700000).decode()
     except BrokenPipeError:
         break
     print(msg)
