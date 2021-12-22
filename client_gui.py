@@ -1,33 +1,25 @@
 #!/usr/bin/env python3
-# client.py
+# client_gui.py
 
-# import json
-# import socket
-# import tkinter as tk 
-# from tkinter import Listbox, messagebox
-# from tkinter import ttk
-# from tkinter.constants import LEFT, RIGHT, VERTICAL, WORD, Y
-# from tkinter.font import BOLD
-# from typing import Tuple 
-# from tkinter import font
 import tkinter as tk 
-from tkinter import ttk 
 from tkinter import messagebox
 from tkinter import *
 import json
 import socket
-import threading
-from tkinter import font
 import tkinter as tk
+import os
+
+cwd = os.path.abspath(os.getcwd())
+assets_path = os.path.join(cwd, 'assets/') 
 
 LARGE_FONT = ("Crystal", 13)
 
 # s.connect(('127.0.0.1', 5566))
 check = 0
-t404 = "t4042_2.png"
-ip="input_ip_1.png"
-co="connect_4.png"
-info="info.png"
+t404 = os.path.join(assets_path, "t4042_2.png")
+ip = os.path.join(assets_path, "input_ip_1.png")
+co = os.path.join(assets_path, "connect_4.png")
+info = os.path.join(assets_path, "info.png")
 # -------------------------------
 MAN_SHELL = """
 Dac Cong's Currency Interactive Shell

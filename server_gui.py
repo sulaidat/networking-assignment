@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# server.py
+# server_gui.py
 
 import socket
 import tkinter as tk

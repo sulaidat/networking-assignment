@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# loop.py
+# loop_window.py
 
 from selectors import DefaultSelector, EVENT_READ, EVENT_WRITE
 import time
