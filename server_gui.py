@@ -74,7 +74,7 @@ class ServerFrame(tk.Frame):
         # Table.configure(yscroll=scrollbar.set)
         # scrollbar.grid(row=1, column=1, sticky='E')
 
-        btn_end = tk.Button(self, text="END",bg="RoyalBlue4",fg='floral white', command=loop.cuc_suc())
+        btn_end = tk.Button(self, text="END",bg="RoyalBlue4",fg='floral white')
         btn_end.grid(row= 2, column=1)
 
  

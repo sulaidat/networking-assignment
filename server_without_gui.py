@@ -144,12 +144,13 @@ def interpret(msg):
     elif msg[0] == 'timeseries':
         try:
             data = timeseries(msg[1], msg[2], msg[3:])
+            print(data)
             msg = json.dumps(data, indent=2)
-        except:
+        except (IndexError, KeyError):
             try:
                 data = timeseries(msg[1], msg[2])
                 msg = json.dumps(data, indent=2)
-            except (KeyError, IndexError, HTTPError):
+            except (KeyError, HTTPError):
                 msg = MAN_TIMESERIES
     elif msg[0] == 'logout':
         msg = 'Logging out'
