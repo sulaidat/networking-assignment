@@ -292,7 +292,7 @@ def handler(conn, addr):
             break
         elif msg == 'Logging out':
             ServerFrame.logging(repr(addr) + ' logging out\n')  # log this
-            loop.create_task((before_handler(conn), None))
+            loop.create_task((before_handler(conn, addr), None))
             logout = True
 
         yield from loop.send(conn, msg.encode())

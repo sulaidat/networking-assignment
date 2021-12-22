@@ -209,7 +209,7 @@ def handler(conn):
 def before_handler(conn):
     logged = False
     while not logged:
-        msg = yield from loop.recv(conn, 1642500)
+        msg = yield from loop.recv(conn, 1024)
         if not msg:
             conn.close()
             break
